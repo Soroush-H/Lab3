@@ -1,0 +1,14 @@
+1.
+
+for $x in doc('Desktop/mondial.xml')/mondial/country
+for $y in doc('Desktop/mondial.xml')/mondial/sea
+where $y/name = "Baltic Sea" and $x/@car_code = tokenize($y/@country, " ")
+return tokenize($x/@capital, '-')[3] (: Vilnius is named "l" in xml doc :)
+
+2.
+
+let $list := 
+  for $x in doc('Desktop/mondial.xml')/mondial/desert
+  order by $x/latitude descending
+  return $x/name
+return $list[1]
