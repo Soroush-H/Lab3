@@ -16,6 +16,23 @@ return ('name= ', $list[1]/name , ' area=', $list[1]/area)
 
 3.
 
+<mountains>
+{
+
+    let $doc := doc("mondial/mondial.xml")
+    for $continent in $doc//continent
+    return <continent name="{$continent/name/text()}">
+             {(let $countries := $doc//country[encompassed/@continent = $continent/@id]
+               for $mountain in $doc//mountain[located/@country = $countries/@car_code]
+               order by $mountain/elevation/number() descending
+               return <highest elevation="{$mountain/elevation/number()}">
+                        {$mountain/name/text()}
+                      </highest>)[1]}
+           </continent>
+}
+</mountains>
+
+
 5. 
 
 let $continents :=
@@ -49,12 +66,33 @@ for $y in doc('mondial/mondial.xml')/mondial/country
 where contains($x/name, 'Nuclear') and not(exists($x/established)) and $y/name = tokenize($x/@headq, '-')[2] and $y/encompassed/@continent = 'europe' return $x/name
 
 
-8.
+8. (FUNKAR INTE)
+
+
+declare function local:popIn($years as xs:integer, $country as xs:string)
+{
+for $x in doc("mondial/mondial.xml")/mondial/country
+where exists($x/population_growth) and $country = data($x/name)
+let $pop := data($x/population[last()])
+let $growth := (<int>{$x/population_growth}</int> + 100) div 100
+let $estpop := xs:long($pop*(math:pow($growth,$years)))
+return $estpop
+};
+ 
+for $x in doc("mondial/mondial.xml")/mondial/country
+order by $x/name
+return
+<country>
+  <name>{$x/name} </name>
+  <PopIn10>{local:popIn(10, $x/name)}</PopIn10>
+  <PopIn25>{local:popIn(25, $x/name)}</PopIn25>
+  <PopIn50>{local:popIn(50, $x/name)}</PopIn50>
+  <PopIn100>{local:popIn(100, $x/name)}</PopIn100>
+</country>
+
 
 10.
 
-
-(: Give names of all the countries (recursively) reachable from Sweden via borders :)
 declare function local:reachableFrom($countries as element(country)*, $oldreachable as element(country)*){
     let $newreachable :=
         for $allCountries in $countries
