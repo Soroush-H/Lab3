@@ -3,12 +3,58 @@
 for $x in doc('Desktop/mondial.xml')/mondial/country
 for $y in doc('Desktop/mondial.xml')/mondial/sea
 where $y/name = "Baltic Sea" and $x/@car_code = tokenize($y/@country, " ")
-return tokenize($x/@capital, '-')[3] 
+return tokenize($x/@capital, '-')[3]
 
 2.
 
-let $list := 
+let $list :=
   for $x in doc('Desktop/mondial.xml')/mondial/desert
   order by $x/latitude descending
   return $x/name
 return $list[1]
+
+1,2,3,5,7,8,10
+
+
+
+
+1
+for $x in /mondial/country
+for $y in /mondial/sea
+where $y/name = "Baltic Sea" and $x/@car_code = tokenize($y/@country, " ")
+return tokenize($x/@capital, '-')[3]
+
+2
+let $list :=
+  for $x in /mondial/desert
+  order by $x/latitude descending
+  return $x
+
+return ('name= ', $list[1]/name , ' area=', $list[1]/area)
+
+
+3
+
+
+5
+
+7 -- inte klar
+for $a in /mondial/organization
+where $a/contains(data(name),"Nuclear") and empty($a/established)
+
+
+return $a/name
+
+-- närmast hittils
+for $a in /mondial/organization
+for $b in /mondial/country
+where $a/contains(data(name),"Nuclear")
+and empty($a/established)
+and $b[@car_code = $a/@country]/encompassed = "Europe"
+
+
+return $a/name
+
+8
+
+10
