@@ -33,7 +33,7 @@ return ('name= ', $list[1]/name , ' area=', $list[1]/area)
 </mountains>
 
 
-5. 
+5.
 
 let $continents :=
   for $x in doc('mondial/mondial.xml')/mondial/continent
@@ -42,10 +42,10 @@ let $continents :=
 
 let $cities1 :=
   for $x in doc('mondial/mondial.xml')/mondial/country/province/city
-  where $x/latitude >= -35 and $x/latitude <= 35 
+  where $x/latitude >= -35 and $x/latitude <= 35
   and $x/../../encompassed[1]/@continent = $continents
   return <cont cont = "{data($x/../../encompassed[1]/@continent)}"/>
-  
+
 let $cities2 :=
   for $x in doc('mondial/mondial.xml')/mondial/country/city
   where $x/latitude >= -35 and $x/latitude <= 35
@@ -59,7 +59,7 @@ return
   return concat($values," ",$count1 + $count2)
 
 
-7. 
+7.
 
 for $x in doc('mondial/mondial.xml')/mondial/organization
 for $y in doc('mondial/mondial.xml')/mondial/country
@@ -78,7 +78,7 @@ let $growth := (<int>{$x/population_growth}</int> + 100) div 100
 let $estpop := xs:long($pop*(math:pow($growth,$years)))
 return $estpop
 };
- 
+
 for $x in doc("mondial/mondial.xml")/mondial/country
 order by $x/name
 return
@@ -91,6 +91,49 @@ return
 </country>
 
 
+
+
+
+
+
+8.1
+declare function local:pow($x as xs:double , $n as xs:integer ) as xs:double
+{
+  if($n eq 0)
+   then 1
+   else
+    (let $h := $n idiv 2,
+         $halfResult := local:pow($x, $h)
+      return
+            if($n mod 2 eq 0)
+              then $halfResult * $halfResult
+              else $x * $halfResult * $halfResult
+        )
+
+};
+
+
+
+for $x in /mondial/country
+
+let $year := max($x/population/@year)
+let $pop := $x/popultion[@year = $year]
+let $growth := ($x/population_growth div 100) +1
+let $estpop := $pop*(local:pow($growth,10))
+
+return
+<country>
+  <name>{$x/name} </name>
+<year>{$year}</year>
+<year>{$pop}</year>
+<year>{$growth}</year>
+<year>{$estpop}</year>
+</country>
+
+
+
+
+
 10.
 
 declare function local:reachableFrom($countries as element(country)*, $oldreachable as element(country)*){
@@ -99,15 +142,15 @@ declare function local:reachableFrom($countries as element(country)*, $oldreacha
         for $countryReach in $oldreachable
         where $countryReach/border/@country = $allCountries/@car_code
         return $allCountries
- 
+
     let $new := $newreachable union $oldreachable
     return if (count($oldreachable) = count($new)) then $new
     else local:reachableFrom($countries, $new)
 };
- 
+
 let $countryData :=
   let $countries := /mondial/country
   let $country := $countries[name='Sweden']
   return local:reachableFrom($countries, $country)
- 
+
 return $countryData/name
