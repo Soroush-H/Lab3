@@ -66,37 +66,8 @@ for $y in doc('mondial/mondial.xml')/mondial/country
 where contains($x/name, 'Nuclear') and not(exists($x/established)) and $y/name = tokenize($x/@headq, '-')[2] and $y/encompassed/@continent = 'europe' return $x/name
 
 
-8. (FUNKAR INTE)
+8. 
 
-
-declare function local:popIn($years as xs:integer, $country as xs:string)
-{
-for $x in doc("mondial/mondial.xml")/mondial/country
-where exists($x/population_growth) and $country = data($x/name)
-let $pop := data($x/population[last()])
-let $growth := (<int>{$x/population_growth}</int> + 100) div 100
-let $estpop := xs:long($pop*(math:pow($growth,$years)))
-return $estpop
-};
-
-for $x in doc("mondial/mondial.xml")/mondial/country
-order by $x/name
-return
-<country>
-  <name>{$x/name} </name>
-  <PopIn10>{local:popIn(10, $x/name)}</PopIn10>
-  <PopIn25>{local:popIn(25, $x/name)}</PopIn25>
-  <PopIn50>{local:popIn(50, $x/name)}</PopIn50>
-  <PopIn100>{local:popIn(100, $x/name)}</PopIn100>
-</country>
-
-
-
-
-
-
-
-8.1
 declare function local:pow($x as xs:double , $n as xs:integer ) as xs:double
 {
   if($n eq 0)
@@ -113,21 +84,27 @@ declare function local:pow($x as xs:double , $n as xs:integer ) as xs:double
 };
 
 
-
 for $x in /mondial/country
 
 let $year := max($x/population/@year)
-let $pop := $x/popultion[@year = $year]
+let $pop := $x/population[@year = $year]
 let $growth := ($x/population_growth div 100) +1
-let $estpop := $pop*(local:pow($growth,10))
+let $growth := if($growth >= 0) then $growth else 1
+let $estpop10 := $pop*(local:pow(data($growth),10))
+let $estpop25 := $pop*(local:pow(data($growth),25))
+let $estpop50 := $pop*(local:pow(data($growth),50))
+let $estpop100 := $pop*(local:pow(data($growth),100))
 
 return
 <country>
   <name>{$x/name} </name>
 <year>{$year}</year>
-<year>{$pop}</year>
-<year>{$growth}</year>
-<year>{$estpop}</year>
+<pop>{$pop}</pop>
+<growth>{$growth}</growth>
+<tenyears>{$estpop10}</tenyears>
+<tjugoyears>{$estpop25}</tjugoyears>
+<femtioyears>{$estpop50}</femtioyears>
+<hundrayears>{$estpop100}</hundrayears>
 </country>
 
 
